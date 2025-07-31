@@ -1,4 +1,8 @@
-from typing import List, Self
+from typing import List
+try:
+    from typing import Self
+except:
+    from typing_extensions import Self
 from .layout import GridLayout, TextFieldLayout, LEFT, TOP, BOTTOM, RIGHT
 from .element_data import *
 import copy
