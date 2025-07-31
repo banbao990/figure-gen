@@ -170,11 +170,11 @@ class Backend:
         rect_width, rect_height = cfg['width_mm'], cfg['height_mm']
 
         # determine the correct offsets depending on wether it is in the corner or center
-        if alignment == 'center':
-            offset_w, offset_h = 0, cfg['offset_mm']
-        else:
-            offset_w = cfg['offset_mm'][0]
-            offset_h = cfg['offset_mm'][1]
+        # if alignment == 'center':
+        #     offset_w, offset_h = 0, cfg['offset_mm']
+        # else:
+        offset_w = cfg['offset_mm'][0]
+        offset_h = cfg['offset_mm'][1]
 
         # determine pos_top of rectangle
         if is_top:
@@ -184,10 +184,10 @@ class Backend:
 
         # determine pos_left of rectangle based on alignment
         if alignment == 'center':
-            pos_left = img_pos_left + (img_width * 1/2.) - (rect_width * 1/2.)
+            pos_left = img_pos_left + (img_width * 0.5) - (rect_width * 0.5) + offset_w
         elif alignment == 'left':
             pos_left = img_pos_left + offset_w
-        else: # right
+        else:  # right
             pos_left = img_pos_left + img_width - rect_width - offset_w
 
         bounds = Bounds(pos_top, pos_left, rect_width, rect_height)
@@ -305,7 +305,8 @@ class Backend:
                     img_size.width_mm, layout.size)
 
                 captions.append(TextComponent(bounds, -1, -1, row_idx, col_idx, txt_content, layout.rotation,
-                    layout.fontsize, layout.text_color, [255, 255, 255], "caption", vertical_alignment="top"))
+                    layout.fontsize, layout.text_color, [255, 255, 255], "caption",
+                    vertical_alignment=layout.vertical_alignment or "top", horizontal_alignment=layout.horizontal_alignment))
 
         return captions
 
@@ -322,9 +323,12 @@ class Backend:
             if width == 0 or height == 0 or content == "":
                 continue
 
+            default_align = "top" if direction == 'south' else "bottom"
+
             t = grid.layout.titles[direction]
             titles.append(TextComponent(bounds, -1, -1, -1, -1, content, t.rotation, t.fontsize,
-                t.text_color, self._compute_bg_colors(t.background_colors, 1)[0], "title-" + direction))
+                t.text_color, self._compute_bg_colors(t.background_colors, 1)[0], "title-" + direction,
+                vertical_alignment=t.vertical_alignment or default_align, horizontal_alignment=t.horizontal_alignment))
         return titles
 
     def _compute_bg_colors(self, bg_color_properties, num) -> list[list[float] | None]:
@@ -350,12 +354,16 @@ class Backend:
                 if txt == "":
                     continue
 
+                default_align = "top" if direction == 'south' else "bottom"
+
                 if is_row:
                     titles.append(TextComponent(bounds, -1, -1, i, -1, txt, t.rotation, t.fontsize,
-                        t.text_color, bg_colors[i], "rowtitle-" + direction))
+                        t.text_color, bg_colors[i], "rowtitle-" + direction,
+                        vertical_alignment=t.vertical_alignment or default_align, horizontal_alignment=t.horizontal_alignment))
                 else:
                     titles.append(TextComponent(bounds, -1, -1, -1, i, txt, t.rotation, t.fontsize,
-                        t.text_color, bg_colors[i], "coltitle-" + direction))
+                        t.text_color, bg_colors[i], "coltitle-" + direction,
+                        vertical_alignment=t.vertical_alignment or default_align, horizontal_alignment=t.horizontal_alignment))
         return titles
 
     def gen_row_titles(self, grid: Grid, grid_bounds: Bounds, img_size: calc.Size) -> List[Component]:
