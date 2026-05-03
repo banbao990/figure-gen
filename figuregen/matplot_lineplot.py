@@ -146,6 +146,10 @@ class MatplotLinePlot(Plot):
         self.aspect_ratio = aspect_ratio
         self._data = data
         self._names = None
+        self._legend = {
+            "fontsize_pt": None,
+            "loc": None,
+        }
         self._linestyles = [ "solid" for _ in data ]
         self._labels = {}
         self._axis_properties = {}
@@ -292,11 +296,15 @@ class MatplotLinePlot(Plot):
         '''
         self._linestyles[idx] = linestyle
 
-    def set_legend(self, names):
+    def set_legend(self, names, fontsize_pt=None, loc=None):
         ''' Enables a legend and uses the given list of strings for the names
         '''
         assert len(names) == len(self._data), "Must have exactly one name per plot line"
         self._names = names
+        if fontsize_pt is not None:
+            self._legend["fontsize_pt"] = fontsize_pt
+        if loc is not None:
+            self._legend["loc"] = loc
 
     def _make(self, width_mm, height_mm, filename):
         matplot_mutex.acquire()
@@ -316,7 +324,12 @@ class MatplotLinePlot(Plot):
             _place_marker(ax, self._markers)
 
             if self._names is not None:
-                ax.legend(self._names)
+                legend_kwargs = {}
+                if self._legend["fontsize_pt"] is not None:
+                    legend_kwargs["fontsize"] = self._legend["fontsize_pt"]
+                if self._legend["loc"] is not None:
+                    legend_kwargs["loc"] = self._legend["loc"]
+                ax.legend(self._names, **legend_kwargs)
 
             plt.savefig(filename, pad_inches=0.0, dpi=500)
         finally:
